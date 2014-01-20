@@ -8,7 +8,7 @@ start(ExtPrg) ->
 init(ExtPrg) ->
   register(complex, self()),
   process_flag(trap_exit, true),
-  Port = open_port({spawn, ExtPrg}, [{packet, 2}]),
+  Port = open_port({spawn, ExtPrg}, [{packet, 2}, binary]),
   loop(Port).
 
 foo(X) ->
@@ -26,10 +26,10 @@ call_port(Msg) ->
 loop(Port) ->
   receive
     {call, Caller, Msg} ->
-      Port ! {self(), {command, encode(Msg)}},
+      Port ! {self(), {command, term_to_binary(Msg)}},
       receive
         {Port, {data, Data}} ->
-          Caller ! {complex, decode(Data)}
+          Caller ! {complex, binary_to_term(Data)}
       end,
       loop(Port);
 	stop ->
@@ -41,7 +41,3 @@ loop(Port) ->
     {'EXIT', _Port, _Reason} ->
       exit(port_terminated)
   end.
-
-encode({foo, X}) -> [1, X];
-encode({bar, Y}) -> [2, Y].
-decode([Int]) -> Int.

@@ -6,20 +6,42 @@
 typedef unsigned char byte;
 
 int main() {
-  int fn, arg, res;
+  ETERM *tuplep, *intp;
+  ETERM *fnp, *argp;
+  int res;
   byte buf[100];
+  long allocated, freed;
+
+  erl_init(NULL, 0);
 
   while (read_cmd(buf) > 0) {
-    fn = buf[0];
-    arg = buf[1];
+    tuplep = erl_decode(buf);
+    fnp = erl_element(1, tuplep);
+    argp = erl_element(2, tuplep);
 
-    if (fn == 1) {
-      res = 1;
-    } else if (fn == 2) {
-      res = 2;
+    if (strncmp(ERL_ATOM_PTR(fnp), "foo", 3) == 0) {
+      res = foo(ERL_INT_VALUE(argp));
+    } else if (strncmp(ERL_ATOM_PTR(fnp), "bar", 17) == 0) {
+      res = bar(ERL_INT_VALUE(argp));
     }
 
-    buf[0] = res;
-    write_cmd(buf, 1);
+    intp = erl_mk_int(res);
+    erl_encode(intp, buf);
+    write_cmd(buf, erl_term_len(intp));
+
+    erl_free_compound(tuplep);
+    erl_free_term(fnp);
+    erl_free_term(argp);
+    erl_free_term(intp);
   }
+}
+
+int foo(int input)
+{
+  return input;
+}
+
+int bar(int input)
+{
+  return input + 20;
 }
