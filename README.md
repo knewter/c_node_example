@@ -4,19 +4,22 @@ This is an effort to show off erlang/c interop.  In theory, it was going to enca
 
 ## To see it in action
 
-First, compile the C program:
+First, compile the C program and the beamfiles:
 
 ```sh
-make
+rebar compile
+rebar compile
 ```
 
-Next, run an erlang console with `erl`.
+NOTE - yes, run it twice for now, because I don't know how to fix a bug in the
+build process yet...
 
-Now compile the `complex` module, and call `foo/1` and `bar/1` on it.
+Next, run an erlang console with `erl -pa ebin`.
+
+Now call `foo/1` and `bar/1` on the `complex` module:
 
 ```erlang
-c('src/complex').
-complex:start('out/c_node').
+complex:start().
 complex:foo(1).
 complex:bar(1).
 ```
