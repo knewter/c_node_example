@@ -1,0 +1,9 @@
+{application,c_node_example,
+             [{description,[]},
+              {vsn,"1"},
+              {registered,[]},
+              {applications,[kernel,stdlib]},
+              {mod,{c_node_example_app,[]}},
+              {env,[]},
+              {modules,[c_node_example_app,c_node_example_sup,complex,
+                        webserver]}]}.

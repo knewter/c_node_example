@@ -43,5 +43,5 @@ int foo(int input)
 
 int bar(int input)
 {
-  return input + 20;
+  return 20 + input;
 }

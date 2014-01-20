@@ -1,14 +1,14 @@
 -module(complex).
--export([start/1, init/1]).
+-export([start/0, init/0]).
 -export([foo/1, bar/1]).
 
-start(ExtPrg) ->
-  spawn(?MODULE, init, [ExtPrg]).
+start() ->
+  spawn(?MODULE, init, []).
 
-init(ExtPrg) ->
+init() ->
   register(complex, self()),
   process_flag(trap_exit, true),
-  Port = open_port({spawn, ExtPrg}, [{packet, 2}, binary]),
+  Port = open_port({spawn, 'priv/c_node'}, [{packet, 2}, binary]),
   loop(Port).
 
 foo(X) ->
