@@ -1,35 +1,35 @@
 -module(complex).
 -export([start/0, init/0]).
--export([img/1, benchmark/1, do_benchmark/2]).
+-export([img/0, benchmark/1, do_benchmark/1]).
 
 start() ->
   spawn(?MODULE, init, []).
 
 init() ->
+  register(complex, self()),
   process_flag(trap_exit, true),
   Port = open_port({spawn, 'priv/c_node'}, [{packet, 2}, binary]),
-  loop(Port, self()).
+  loop(Port).
 
-img(ReceiverPid) ->
-  Pid = start(),
-  ReceiverPid ! {data, call_port(Pid, {img})}.
+img() ->
+  call_port({img}).
 
-call_port(Pid, Msg) ->
-  Pid ! {call, self(), Msg},
+call_port(Msg) ->
+  complex ! {call, self(), Msg},
   receive
-    {_Pid, Result} ->
+    {complex, Result} ->
       Result
   end.
 
-loop(Port, Pid) ->
+loop(Port) ->
   receive
     {call, Caller, Msg} ->
       Port ! {self(), {command, term_to_binary(Msg)}},
       receive
         {Port, {data, Data}} ->
-          Caller ! {Pid, binary_to_term(Data)}
+          Caller ! {complex, binary_to_term(Data)}
       end,
-      loop(Port, Pid);
+      loop(Port);
 	stop ->
 	  Port ! {self(), close},
 	  receive
@@ -42,15 +42,10 @@ loop(Port, Pid) ->
 
 %% This is just used to benchmark how many images we can do per second...
 benchmark(Number) ->
-  Pid = self(),
-  timer:tc(?MODULE, do_benchmark, [Pid, Number]).
+  timer:tc(?MODULE, do_benchmark, [Number]).
 
-do_benchmark(_Pid, 0) ->
-  receive
-    {data, SomeData} -> do_benchmark(_Pid, 0)
-  after
-    1 -> ok
-  end;
-do_benchmark(Pid, Number) ->
-  spawn(?MODULE, img, [Pid]),
-  do_benchmark(Pid, Number-1).
+do_benchmark(0) ->
+  ok;
+do_benchmark(Number) ->
+  img(),
+  do_benchmark(Number-1).
